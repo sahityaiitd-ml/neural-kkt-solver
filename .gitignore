@@ -1,0 +1,23 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+
+# Virtual Environment
+.venv/
+env/
+venv/
+ENV/
+
+# Mac OS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE / Editor folders
+.vscode/
+.idea/
+
+# Temporary test logs and data
+*.log
