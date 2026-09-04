@@ -12,8 +12,9 @@
 ## Overview
 This project develops an ultra-fast, data-driven optimization solver based on solving the **Karush-Kuhn-Tucker (KKT) optimality conditions** using **Neural Networks**. 
 
-Instead of relying on slow, sequential iterative algorithms (like classical Simplex or Interior-Point methods), this neural solver directly learns to satisfy the KKT optimality conditions in an unsupervised/physics-informed framework, outputting optimal primal variables ($x^*$) and dual multipliers ($\lambda^*$) in a single forward pass.
+Instead of relying on slow, sequential iterative algorithms (like classical Simplex or Interior-Point methods), this neural solver directly learns to satisfy the KKT optimality conditions in an unsupervised/physics-informed framework, outputting optimal primal variables (x*) and dual multipliers (\lambda^*) in a single forward pass.
 
+The `pyomo_kkt_pipeline.ipynb` is the Notebook representation of `pyomo_pipeline` for better representation and understanding. Once we agree on the changes the main folders are then modified.
 ---
 
 ## Repository Structure
