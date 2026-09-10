@@ -10,7 +10,7 @@
 ---
 
 ## Overview
-This project develops an ultra-fast, data-driven optimization solver based on solving the **Karush-Kuhn-Tucker (KKT) optimality conditions** using **Neural Networks (KINN)**. 
+This project develops an optimization solver to predict optimal primal and dual variables of any LP problem, based on solving the **Karush-Kuhn-Tucker (KKT) optimality conditions** using **Neural Networks (KINN)**. 
 
 Instead of relying on slow, sequential iterative algorithms (like classical Simplex or Interior-Point methods), this neural solver directly learns to satisfy the KKT optimality conditions in an unsupervised, physics-informed framework, outputting optimal primal variables ($\hat{x}$) and dual multipliers ($\hat{\lambda}$) simultaneously.
 
