@@ -9,14 +9,14 @@
 
 ---
 
-## 🎯 Overview
+## Overview
 This project develops an ultra-fast, data-driven optimization solver based on solving the **Karush-Kuhn-Tucker (KKT) optimality conditions** using **Neural Networks (KINN)**. 
 
 Instead of relying on slow, sequential iterative algorithms (like classical Simplex or Interior-Point methods), this neural solver directly learns to satisfy the KKT optimality conditions in an unsupervised, physics-informed framework, outputting optimal primal variables ($\hat{x}$) and dual multipliers ($\hat{\lambda}$) simultaneously.
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 ├── Weekly Reports (Home Device)/  # Weekly progress reports, uploaded documents & milestone tracker
@@ -52,7 +52,7 @@ Instead of relying on slow, sequential iterative algorithms (like classical Simp
 
 ---
 
-## ⚡ Quickstart
+## Quickstart
 
 ### 1. Install Dependencies
 ```bash
@@ -79,11 +79,12 @@ python KKT_Benchmark/benchmark_harness.py
 
 ---
 
-## 📏 Benchmarking & Evaluation Methodology
+## Benchmarking & Evaluation Methodology
 
 1. **Strict Algorithmic Timing Protocol:** Timing starts strictly after the problem matrices are loaded into RAM and ends the instant solution vectors $(\hat{x}, \hat{\lambda})$ are returned. Zero disk I/O or parsing overhead is included in the timers.
 2. **True Optimality Metrics:** Because linear programs frequently have non-unique optimal solutions (entire optimal faces), measuring Euclidean distance $\|x - x^*\|$ to a single Simplex corner is mathematically flawed. Solvers are evaluated using:
-   - **Relative Objective Gap:** $\frac{|c^T \hat{x} - z^*|}{\max(1, |z^*|)}$
+
+   - **Relative Objective Gap:** $\frac{\|c^T \hat{x} - \hat{z}\|}{\max(1, \hat{z}\)}$
    - **Primal Feasibility Violation:** $\|\max(0, G\hat{x} - h)\|_\infty$
    - **Dual Feasibility Violation:** $\|\min(0, \hat{\lambda})\|_\infty$
    - **Stationarity Residual:** $\|c + G^T \hat{\lambda}\|_\infty$
