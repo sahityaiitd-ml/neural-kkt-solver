@@ -9,47 +9,82 @@
 
 ---
 
-## Overview
-This project develops an ultra-fast, data-driven optimization solver based on solving the **Karush-Kuhn-Tucker (KKT) optimality conditions** using **Neural Networks**. 
+## 🎯 Overview
+This project develops an ultra-fast, data-driven optimization solver based on solving the **Karush-Kuhn-Tucker (KKT) optimality conditions** using **Neural Networks (KINN)**. 
 
-Instead of relying on slow, sequential iterative algorithms (like classical Simplex or Interior-Point methods), this neural solver directly learns to satisfy the KKT optimality conditions in an unsupervised/physics-informed framework, outputting optimal primal variables (x*) and dual multipliers (\lambda^*) in a single forward pass.
-
-#### The pyomo_kkt_pipeline.ipynb is the Notebook representation of pyomo_pipeline for better representation and understanding. Once we agree on the changes the main folders are then modified.
----
-
-## Repository Structure
-
-```
-├── pyomo_kkt_pipeline.ipynb      # Main end-to-end interactive notebook (Pyomo -> KKT -> ANN)
-├── pyomo_pipeline/               # Core Python package for Pyomo modeling & KKT extraction
-│   ├── model_builder.py          # Parametric LP model builders
-│   ├── kkt_extractor.py          # Canonical (c, G, h) extraction engine
-│   ├── solver.py                 # HiGHS direct solver integration
-│   └── kkt_evaluator.py          # 4-term KKT residual error verification
-├── benchmarks/                  # Benchmark dataset generation pipeline
-│   ├── input/                   # Benchmark problem files (.mps, .lp, .mps.gz from Netlib & MIPLIB)
-│   ├── dataset/                 # Preprocessed canonical (.npz) instances with summary.json
-│   └── batch_kkt_dataset_pipeline.py  # Automated batch dataset builder
-├── literature_review/           # Foundational research papers
-│   ├── 2409.09087v1.pdf         # KINN (KKT-Informed Neural Networks)
-│   └── 2410.15973v1.pdf         # KKT Nets (IIT Dharwad)
-├── reports/                     # Bi-weekly project progress reports
-└── .gitignore                   # Standard Python / environment ignore rules
-```
+Instead of relying on slow, sequential iterative algorithms (like classical Simplex or Interior-Point methods), this neural solver directly learns to satisfy the KKT optimality conditions in an unsupervised, physics-informed framework, outputting optimal primal variables ($\hat{x}$) and dual multipliers ($\hat{\lambda}$) simultaneously.
 
 ---
 
-## Quickstart
+## 📁 Repository Structure
+
+```
+├── Weekly Reports (Home Device)/  # Weekly progress reports, uploaded documents & milestone tracker
+│   ├── IIT Delhi Reports/         # Official college progress reports submitted at IIT Delhi
+│   │   ├── I1 Progress report_1.pdf
+│   │   └── I1 Progress Report_2.pdf
+│   ├── Weekly_Progress_Report_Week_1.md # Comprehensive Week 1 collaborative milestone report
+│   └── README.md                  # Weekly progress index and roadmap
+│
+├── KKT_Standalone_Reader/         # Universal problem ingestion engine (Zero-dependency)
+│   ├── core/                      # Canonical LP representation & KKT verification
+│   ├── readers/                   # MPS, LP, Pyomo, JSON & NumPy/SciPy matrix readers
+│   ├── examples/                  # Sample problem files (Diet, Production, Supply Chain)
+│   └── tests/test_reader.py       # Automated test suite (5/5 passing, < 1e-14 error)
+│
+├── KKT_Solver_Iteration_1/        # First-Generation Single-Instance KINN Solver
+│   ├── model.py                   # 2-layer hidden MLP with decoupled primal and dual heads
+│   ├── loss.py                    # 5-term physics-informed KKT loss function
+│   ├── solver.py                  # Adam optimizer + ReduceLROnPlateau + checkpoint snapshotting
+│   ├── evaluate.py                # Relative objective gap and KKT residual calculators
+│   └── run_iteration_1.py         # Standalone runner with loss convergence plotting
+│
+├── KKT_Benchmark/                 # Official Academic Benchmark Suite
+│   ├── problems/                  # 412 official Netlib & MIPLIB .mps.gz benchmark files
+│   ├── solutions/                 # 393 verified HiGHS ground-truth solutions (.npz)
+│   ├── summary.json               # Catalog of all 412 instances with dimensions and metrics
+│   ├── benchmark_harness.py       # Automated evaluation harness with tiered filtering
+│   └── generate_solutions.py      # High-throughput C++ HiGHS sparse streaming solver
+│
+├── requirements.txt              # Project dependencies
+└── .gitignore                    # Standard Python, environment, and cache ignore rules
+```
+
+---
+
+## ⚡ Quickstart
 
 ### 1. Install Dependencies
 ```bash
 pip install -r requirements.txt
-# or directly:
-pip install pyomo highspy torch numpy matplotlib
 ```
 
-### 2. Run Main Pipeline Notebook
-Open and run `pyomo_kkt_pipeline.ipynb` in Jupyter or Google Colab:
-- **Part 1:** Problem modeling in Pyomo and direct solving with HiGHS.
-- **Part 2:** Automated KKT algebraic extraction and residual validation ($\approx 10^{-16}$ error).
-- **Part 3:** HiGHS benchmark file reader & first iteration Artificial Neural Network (ANN) solver inspection.
+### 2. Verify Problem Ingestion Engine
+Run the automated reader test suite to verify canonical extraction across all 4 formats:
+```bash
+python KKT_Standalone_Reader/tests/test_reader.py
+```
+
+### 3. Run Single-Instance KINN Baseline (Iteration 1)
+Solve a canonical production planning LP and plot the 5-term loss convergence:
+```bash
+python KKT_Solver_Iteration_1/run_iteration_1.py
+```
+
+### 4. Benchmark Against Official Netlib / MIPLIB Instances
+Evaluate any solver on curated academic benchmarks under the strict zero-I/O timing protocol:
+```bash
+python KKT_Benchmark/benchmark_harness.py
+```
+
+---
+
+## 📏 Benchmarking & Evaluation Methodology
+
+1. **Strict Algorithmic Timing Protocol:** Timing starts strictly after the problem matrices are loaded into RAM and ends the instant solution vectors $(\hat{x}, \hat{\lambda})$ are returned. Zero disk I/O or parsing overhead is included in the timers.
+2. **True Optimality Metrics:** Because linear programs frequently have non-unique optimal solutions (entire optimal faces), measuring Euclidean distance $\|x - x^*\|$ to a single Simplex corner is mathematically flawed. Solvers are evaluated using:
+   - **Relative Objective Gap:** $\frac{|c^T \hat{x} - z^*|}{\max(1, |z^*|)}$
+   - **Primal Feasibility Violation:** $\|\max(0, G\hat{x} - h)\|_\infty$
+   - **Dual Feasibility Violation:** $\|\min(0, \hat{\lambda})\|_\infty$
+   - **Stationarity Residual:** $\|c + G^T \hat{\lambda}\|_\infty$
+   - **Complementary Slackness:** $\|\hat{\lambda} \odot (h - G\hat{x})\|_\infty$

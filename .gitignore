@@ -21,3 +21,24 @@ ENV/
 
 # Temporary test logs and data
 *.log
+
+# Large Benchmark Archives (keep full summary.json and Tier 1 scorecard samples)
+KKT_Benchmark/problems/*
+!KKT_Benchmark/problems/adlittle.mps.gz
+!KKT_Benchmark/problems/afiro.mps.gz
+!KKT_Benchmark/problems/bell5.mps.gz
+!KKT_Benchmark/problems/blend.mps.gz
+!KKT_Benchmark/problems/e226.mps.gz
+!KKT_Benchmark/problems/flugpl.mps.gz
+!KKT_Benchmark/problems/sc50a.mps.gz
+!KKT_Benchmark/problems/share2b.mps.gz
+
+KKT_Benchmark/solutions/*
+!KKT_Benchmark/solutions/adlittle.npz
+!KKT_Benchmark/solutions/afiro.npz
+!KKT_Benchmark/solutions/bell5.npz
+!KKT_Benchmark/solutions/blend.npz
+!KKT_Benchmark/solutions/e226.npz
+!KKT_Benchmark/solutions/flugpl.npz
+!KKT_Benchmark/solutions/sc50a.npz
+!KKT_Benchmark/solutions/share2b.npz

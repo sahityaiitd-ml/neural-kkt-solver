@@ -1,0 +1,68 @@
+{
+  "name": "Supply_Chain_Distribution",
+  "description": "Medium-scale transportation problem shipping goods from 3 Factories to 4 Distribution Centers at minimum logistics cost.",
+  "sense": "minimize",
+  "objective": {
+    "flow_F1_D1": 2.5, "flow_F1_D2": 3.0, "flow_F1_D3": 4.5, "flow_F1_D4": 5.0,
+    "flow_F2_D1": 3.5, "flow_F2_D2": 2.0, "flow_F2_D3": 3.0, "flow_F2_D4": 4.0,
+    "flow_F3_D1": 4.0, "flow_F3_D2": 3.5, "flow_F3_D3": 2.5, "flow_F3_D4": 2.0
+  },
+  "constraints": [
+    {
+      "name": "factory_1_capacity",
+      "expr": {"flow_F1_D1": 1.0, "flow_F1_D2": 1.0, "flow_F1_D3": 1.0, "flow_F1_D4": 1.0},
+      "sense": "<=",
+      "rhs": 250.0
+    },
+    {
+      "name": "factory_2_capacity",
+      "expr": {"flow_F2_D1": 1.0, "flow_F2_D2": 1.0, "flow_F2_D3": 1.0, "flow_F2_D4": 1.0},
+      "sense": "<=",
+      "rhs": 300.0
+    },
+    {
+      "name": "factory_3_capacity",
+      "expr": {"flow_F3_D1": 1.0, "flow_F3_D2": 1.0, "flow_F3_D3": 1.0, "flow_F3_D4": 1.0},
+      "sense": "<=",
+      "rhs": 220.0
+    },
+    {
+      "name": "demand_D1",
+      "expr": {"flow_F1_D1": 1.0, "flow_F2_D1": 1.0, "flow_F3_D1": 1.0},
+      "sense": ">=",
+      "rhs": 150.0
+    },
+    {
+      "name": "demand_D2",
+      "expr": {"flow_F1_D2": 1.0, "flow_F2_D2": 1.0, "flow_F3_D2": 1.0},
+      "sense": ">=",
+      "rhs": 200.0
+    },
+    {
+      "name": "demand_D3",
+      "expr": {"flow_F1_D3": 1.0, "flow_F2_D3": 1.0, "flow_F3_D3": 1.0},
+      "sense": ">=",
+      "rhs": 180.0
+    },
+    {
+      "name": "demand_D4",
+      "expr": {"flow_F1_D4": 1.0, "flow_F2_D4": 1.0, "flow_F3_D4": 1.0},
+      "sense": ">=",
+      "rhs": 170.0
+    }
+  ],
+  "bounds": {
+    "flow_F1_D1": [0.0, 120.0],
+    "flow_F1_D2": [0.0, 120.0],
+    "flow_F1_D3": [0.0, 120.0],
+    "flow_F1_D4": [0.0, 120.0],
+    "flow_F2_D1": [0.0, 150.0],
+    "flow_F2_D2": [0.0, 150.0],
+    "flow_F2_D3": [0.0, 150.0],
+    "flow_F2_D4": [0.0, 150.0],
+    "flow_F3_D1": [0.0, 100.0],
+    "flow_F3_D2": [0.0, 100.0],
+    "flow_F3_D3": [0.0, 100.0],
+    "flow_F3_D4": [0.0, 100.0]
+  }
+}
