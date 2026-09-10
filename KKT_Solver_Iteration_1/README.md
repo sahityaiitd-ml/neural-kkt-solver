@@ -21,7 +21,7 @@ A single-instance Physics-Informed Neural Network (KINN) optimization engine tha
 
 ---
 
-## 🚀 Running the Demonstration
+## Running the Demonstration
 
 To run the full suite on the example problems and Netlib's `afiro.mps`:
 
