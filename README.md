@@ -46,6 +46,7 @@ Instead of relying on slow, sequential iterative algorithms (like classical Simp
 │   ├── benchmark_harness.py       # Automated evaluation harness with tiered filtering
 │   └── generate_solutions.py      # High-throughput C++ HiGHS sparse streaming solver
 │
+├── ITERATION_DEVELOPMENT_GUIDE.md # 📖 Comprehensive developer guide for teammates
 ├── requirements.txt              # Project dependencies
 └── .gitignore                    # Standard Python, environment, and cache ignore rules
 ```
