@@ -4,7 +4,7 @@ The `KKT_Benchmark` directory provides an automated evaluation suite to test and
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```
 KKT_Benchmark/
@@ -19,7 +19,7 @@ KKT_Benchmark/
 
 ---
 
-## 📊 Dataset Size & Tiering (Device Constraints)
+## Dataset Size & Tiering (Device Constraints)
 
 To allow benchmarking on standard workstations and laptops without running out of memory (OOM), problems are categorized by scale:
 
@@ -33,7 +33,7 @@ To allow benchmarking on standard workstations and laptops without running out o
 
 ---
 
-## ⏱️ Pure Algorithmic Solve-Time Protocol
+## Pure Algorithmic Solve-Time Protocol
 
 To ensure 100% fair scientific comparison:
 1. **Zero I/O in Timer:** Problem loading from disk, text/binary MPS parsing, and memory matrix allocation occur **before** the timer starts.
@@ -52,7 +52,7 @@ To ensure 100% fair scientific comparison:
 
 ---
 
-## 🚀 How to Run the Benchmark Harness
+## How to Run the Benchmark Harness
 
 To evaluate an iteration on a curated sample:
 ```bash
