@@ -18,7 +18,8 @@ import sys
 import glob
 import time
 import json
-from typing import Optional, List, Callable
+import csv
+from typing import Optional, List, Callable, Dict, Any
 import numpy as np
 
 # Add project root to sys.path
@@ -38,10 +39,15 @@ def evaluate_solver_on_benchmark(
     tier: Optional[str] = None,
     max_problems: Optional[int] = None,
     problem_names: Optional[List[str]] = None,
-    verbose: bool = True
-):
+    verbose: bool = True,
+    save_json: bool = True,
+    save_csv: bool = True,
+    results_dir: Optional[str] = None,
+    filename: Optional[str] = None
+) -> List[Dict[str, Any]]:
     """
     Runs a KINN solver across Netlib/MIPLIB benchmarks and reports accuracy & speed.
+    Automatically saves benchmark results to JSON and CSV for reusability.
 
     Parameters:
     -----------
@@ -56,11 +62,23 @@ def evaluate_solver_on_benchmark(
         Maximum number of problems to evaluate.
     problem_names : list of str, optional
         Explicit list of problem names to evaluate (e.g. ["afiro", "adlittle", "e226"]).
+    verbose : bool
+        If True, logs per-problem progress during the run.
+    save_json : bool
+        If True, saves full run metadata and problem scorecard to a JSON file.
+    save_csv : bool
+        If True, saves tabular metrics to a CSV file.
+    results_dir : str, optional
+        Target directory to archive benchmark results. Defaults to KKT_Benchmark/results.
+    filename : str, optional
+        Custom filename (without extension) for the saved files. If None, derived from solver_name.
     """
     if problems_dir is None:
         problems_dir = os.path.join(current_dir, "problems")
     if solutions_dir is None:
         solutions_dir = os.path.join(current_dir, "solutions")
+    if results_dir is None:
+        results_dir = os.path.join(current_dir, "results")
 
     summary_path = os.path.join(current_dir, "summary.json")
     summary = {}
@@ -93,11 +111,11 @@ def evaluate_solver_on_benchmark(
     if max_problems is not None:
         targets = targets[:max_problems]
 
-    print("=" * 90)
-    print(f"🏁 RUNNING BENCHMARK HARNESS ON: {solver_name}")
+    print("=" * 95)
+    print(f"[BENCHMARK] RUNNING BENCHMARK HARNESS ON: {solver_name}")
     print(f"   Target Problem Set: {len(targets)} problems (Tier: {tier or 'all available'})")
     print("   Timing: Pure algorithmic solve time only (zero loading/file I/O)")
-    print("=" * 90)
+    print("=" * 95)
 
     scorecard = []
 
@@ -112,7 +130,7 @@ def evaluate_solver_on_benchmark(
         highs_time_ms = float(ground_truth["pure_solve_time_sec"]) * 1000.0
 
         if verbose:
-            print(f"[{idx:2d}/{len(targets):2d}] ⚡ Solving '{clean_name}' ({kkt_sys.n_vars} vars, {kkt_sys.n_constraints} cons)...")
+            print(f"[{idx:2d}/{len(targets):2d}] Solving '{clean_name}' ({kkt_sys.n_vars} vars, {kkt_sys.n_constraints} cons)...")
 
         # 2. Pure Solve Timer around Neural Solver
         t_start = time.perf_counter()
@@ -154,7 +172,7 @@ def evaluate_solver_on_benchmark(
 
     # 5. Print Consolidated Scorecard Table
     print("\n" + "=" * 95)
-    print(f"🏆 OFFICIAL KKT BENCHMARK SCORECARD: {solver_name}")
+    print(f"[SCORECARD] OFFICIAL KKT BENCHMARK SCORECARD: {solver_name}")
     print("=" * 95)
     header = (
         f"{'Problem':<14} | {'Vars':<5} | {'Cons':<6} | "
@@ -179,7 +197,166 @@ def evaluate_solver_on_benchmark(
         print(line)
     print("=" * 95)
 
+    # 6. Save Results to Disk
+    if save_json or save_csv:
+        os.makedirs(results_dir, exist_ok=True)
+        if filename is None:
+            clean_base = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in solver_name.lower())
+            base_fname = clean_base.strip("_")
+        else:
+            base_fname = filename.replace(".json", "").replace(".csv", "")
+
+        gaps = [s["gap_percent"] for s in scorecard]
+        times = [s["kinn_time_ms"] for s in scorecard]
+        prim_viols = [s["primal_viol"] for s in scorecard]
+        dual_viols = [s["dual_viol"] for s in scorecard]
+
+        summary_data = {
+            "num_problems": len(scorecard),
+            "mean_gap_percent": float(np.mean(gaps)) if gaps else 0.0,
+            "median_gap_percent": float(np.median(gaps)) if gaps else 0.0,
+            "min_gap_percent": float(np.min(gaps)) if gaps else 0.0,
+            "max_gap_percent": float(np.max(gaps)) if gaps else 0.0,
+            "mean_primal_violation": float(np.mean(prim_viols)) if prim_viols else 0.0,
+            "max_primal_violation": float(np.max(prim_viols)) if prim_viols else 0.0,
+            "mean_dual_violation": float(np.mean(dual_viols)) if dual_viols else 0.0,
+            "max_dual_violation": float(np.max(dual_viols)) if dual_viols else 0.0,
+            "mean_time_ms": float(np.mean(times)) if times else 0.0,
+            "total_time_ms": float(np.sum(times)) if times else 0.0
+        }
+
+        if save_json:
+            json_file = os.path.join(results_dir, f"{base_fname}.json")
+            payload = {
+                "solver_name": solver_name,
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "tier": tier,
+                "summary": summary_data,
+                "scorecard": scorecard
+            }
+            with open(json_file, "w", encoding="utf-8") as f:
+                json.dump(payload, f, indent=2)
+            print(f"[SAVED] JSON benchmark results saved to: {json_file}")
+
+        if save_csv:
+            csv_file = os.path.join(results_dir, f"{base_fname}.csv")
+            fields = [
+                "problem", "n_vars", "n_cons", "highs_obj", "kinn_obj",
+                "gap_percent", "primal_viol", "dual_viol", "stat_error",
+                "slack_error", "highs_time_ms", "kinn_time_ms", "epochs"
+            ]
+            with open(csv_file, "w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=fields)
+                writer.writeheader()
+                for row in scorecard:
+                    writer.writerow(row)
+            print(f"[SAVED] CSV benchmark results saved to: {csv_file}")
+
     return scorecard
+
+
+def load_benchmark_result(
+    path_or_name: str,
+    results_dir: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Loads a saved benchmark result dictionary from disk.
+    Accepts either an absolute/relative path or a filename without extension in results_dir.
+    """
+    if results_dir is None:
+        results_dir = os.path.join(current_dir, "results")
+
+    if os.path.isfile(path_or_name):
+        target_path = path_or_name
+    else:
+        candidate = os.path.join(results_dir, path_or_name if path_or_name.endswith(".json") else f"{path_or_name}.json")
+        if os.path.isfile(candidate):
+            target_path = candidate
+        else:
+            raise FileNotFoundError(f"Benchmark result file not found: {path_or_name} in {results_dir}")
+
+    with open(target_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def compare_saved_benchmarks(
+    run_identifiers: List[str],
+    results_dir: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """
+    Compares two or more saved benchmark JSON files side-by-side without re-running solvers.
+
+    Parameters:
+    -----------
+    run_identifiers : list of str
+        List of filenames or paths (e.g. ["iteration_1_25_problems", "iteration_2_25_problems", "iteration_3_25_problems"]).
+    results_dir : str, optional
+        Directory where JSON files are located. Defaults to KKT_Benchmark/results.
+    """
+    runs = [load_benchmark_result(rid, results_dir) for rid in run_identifiers]
+    if len(runs) < 2:
+        raise ValueError("Need at least 2 runs to perform a comparison!")
+
+    names = [r["solver_name"] for r in runs]
+    cards = [{item["problem"]: item for item in r["scorecard"]} for r in runs]
+
+    # Shared problems across all runs
+    common_problems = sorted(list(set.intersection(*[set(c.keys()) for c in cards])))
+
+    print("\n" + "=" * 115)
+    print(f"[COMPARISON] MULTI-ITERATION BENCHMARK COMPARISON ({len(common_problems)} Common Problems)")
+    for i, name in enumerate(names, 1):
+        print(f"   [{i}] {name}")
+    print("=" * 115)
+
+    # Header
+    col_headers = ["Problem", "Vars", "Cons"]
+    for i in range(len(runs)):
+        col_headers.append(f"Iter {i+1} Gap%")
+    col_headers.append("Best Gap")
+    col_headers.append("Best Solver")
+
+    header_line = f"{col_headers[0]:<14} | {col_headers[1]:<5} | {col_headers[2]:<6} | "
+    for i in range(len(runs)):
+        header_line += f"{col_headers[3+i]:<12} | "
+    header_line += f"{col_headers[-2]:<10} | {col_headers[-1]:<14}"
+    print(header_line)
+    print("-" * 115)
+
+    comparison_records = []
+    wins_per_run = [0] * len(runs)
+
+    for prob in common_problems:
+        prob_runs = [c[prob] for c in cards]
+        n_v = prob_runs[0]["n_vars"]
+        n_c = prob_runs[0]["n_cons"]
+        gaps = [pr["gap_percent"] for pr in prob_runs]
+
+        best_idx = int(np.argmin(gaps))
+        wins_per_run[best_idx] += 1
+
+        row_str = f"{prob:<14} | {n_v:<5} | {n_c:<6} | "
+        for g in gaps:
+            row_str += f"{g:<11.2f}% | "
+        row_str += f"{gaps[best_idx]:<9.2f}% | Iteration {best_idx + 1}"
+        print(row_str)
+
+        comparison_records.append({
+            "problem": prob,
+            "n_vars": n_v,
+            "n_cons": n_c,
+            "gaps": gaps,
+            "best_solver_index": best_idx + 1,
+            "best_gap": gaps[best_idx]
+        })
+
+    print("=" * 115)
+    print("[WIN SUMMARY]")
+    for i, name in enumerate(names, 1):
+        print(f"   * Iteration {i} ({name}): Won on {wins_per_run[i-1]} / {len(common_problems)} problems ({wins_per_run[i-1]/len(common_problems)*100:.1f}%)")
+    print("=" * 115)
+
+    return comparison_records
 
 
 if __name__ == "__main__":
@@ -198,6 +375,8 @@ if __name__ == "__main__":
     sample_problems = ["afiro", "flugpl", "adlittle", "bell5", "e226", "blend", "share2b", "sc50a"]
     evaluate_solver_on_benchmark(
         solver_fn=run_iteration_1_wrapper,
-        solver_name="KKT_Solver_Iteration_1 (Basic ReLU Baseline)",
-        problem_names=sample_problems
+        solver_name="Iteration_1_Basic_ReLU",
+        problem_names=sample_problems,
+        filename="iteration_1_sample_test"
     )
+

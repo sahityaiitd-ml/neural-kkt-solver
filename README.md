@@ -32,21 +32,20 @@ Instead of relying on slow, sequential iterative algorithms (like classical Simp
 │   ├── examples/                  # Sample problem files (Diet, Production, Supply Chain)
 │   └── tests/test_reader.py       # Automated test suite (5/5 passing, < 1e-14 error)
 │
-├── KKT_Solver_Iteration_1/        # First-Generation Single-Instance KINN Solver
-│   ├── model.py                   # 2-layer hidden MLP with decoupled primal and dual heads
-│   ├── loss.py                    # 5-term physics-informed KKT loss function
-│   ├── solver.py                  # Adam optimizer + ReduceLROnPlateau + checkpoint snapshotting
-│   ├── evaluate.py                # Relative objective gap and KKT residual calculators
-│   └── run_iteration_1.py         # Standalone runner with loss convergence plotting
+├── KKT_Solver_Iteration_1/        # Baseline ReLU Solver (5-term KKT loss)
+├── KKT_Solver_Iteration_2/        # GELU + Softplus Dual Head Solver (4-term KKT loss)
+├── KKT_Solver_Iteration_3/        # Path B: Fischer-Burmeister Complementarity Formulation
 │
 ├── KKT_Benchmark/                 # Official Academic Benchmark Suite
 │   ├── problems/                  # 412 official Netlib & MIPLIB .mps.gz benchmark files
 │   ├── solutions/                 # 393 verified HiGHS ground-truth solutions (.npz)
+│   ├── results/                   # Archived JSON & CSV scorecards across all solver iterations
 │   ├── summary.json               # Catalog of all 412 instances with dimensions and metrics
-│   ├── benchmark_harness.py       # Automated evaluation harness with tiered filtering
+│   ├── benchmark_harness.py       # Automated evaluation harness with serialization & comparison
 │   └── generate_solutions.py      # High-throughput C++ HiGHS sparse streaming solver
 │
-├── ITERATION_DEVELOPMENT_GUIDE.md # 📖 Comprehensive developer guide for teammates
+├── stress_test.sh                 # Standalone stress-test runner & cross-iteration comparator
+├── ITERATION_DEVELOPMENT_GUIDE.md # Developer guide for teammates
 ├── requirements.txt              # Project dependencies
 └── .gitignore                    # Standard Python, environment, and cache ignore rules
 ```
@@ -76,6 +75,16 @@ python KKT_Solver_Iteration_1/run_iteration_1.py
 Evaluate any solver on curated academic benchmarks under the strict zero-I/O timing protocol:
 ```bash
 python KKT_Benchmark/benchmark_harness.py
+```
+
+### 5. Automated Stress Testing & Multi-Iteration Comparison
+Execute stress tests on specific iterations or compare all archived JSON runs side-by-side:
+```bash
+# Run 25-problem benchmark on Iteration 3
+./stress_test.sh 3 25
+
+# Compare all archived iterations instantly (zero re-solve overhead)
+./stress_test.sh compare
 ```
 
 ---
