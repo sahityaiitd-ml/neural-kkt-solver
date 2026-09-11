@@ -34,7 +34,7 @@ Instead of relying on slow, sequential iterative algorithms (like classical Simp
 │
 ├── KKT_Solver_Iteration_1/        # Baseline ReLU Solver (5-term KKT loss)
 ├── KKT_Solver_Iteration_2/        # GELU + Softplus Dual Head Solver (4-term KKT loss)
-├── KKT_Solver_Iteration_3/        # Path B: Fischer-Burmeister Complementarity Formulation
+├── KKT_Solver_Iteration_3/        # Fischer-Burmeister Complementarity Formulation
 │
 ├── KKT_Benchmark/                 # Official Academic Benchmark Suite
 │   ├── problems/                  # 412 official Netlib & MIPLIB .mps.gz benchmark files
