@@ -105,23 +105,34 @@ def build_canonical_kkt_system(
     coo_cols: List[int] = []
     coo_vals: List[float] = []
 
+    # Estimate matrix scale to prevent multi-gigabyte memory allocations
+    est_elements = (len(row_coefs) + 2 * n_vars) * n_vars
+    use_sparse = est_elements > 2_000_000
     current_row_idx = 0
 
     def add_inequality_row(coef_dict: Dict[int, float], rhs_val: float, label: str, negate: bool = False):
         """Helper to append one inequality row (negate=True turns >= into <=)."""
         nonlocal current_row_idx
-        row_dense = np.zeros(n_vars, dtype=np.float64)
         multiplier = -1.0 if negate else 1.0
 
-        for col_idx, val in coef_dict.items():
-            final_val = multiplier * float(val)
-            row_dense[col_idx] = final_val
-            if abs(final_val) > 1e-15:
-                coo_rows.append(current_row_idx)
-                coo_cols.append(col_idx)
-                coo_vals.append(final_val)
+        if not use_sparse:
+            row_dense = np.zeros(n_vars, dtype=np.float64)
+            for col_idx, val in coef_dict.items():
+                final_val = multiplier * float(val)
+                row_dense[col_idx] = final_val
+                if abs(final_val) > 1e-15:
+                    coo_rows.append(current_row_idx)
+                    coo_cols.append(col_idx)
+                    coo_vals.append(final_val)
+            G_rows.append(row_dense)
+        else:
+            for col_idx, val in coef_dict.items():
+                final_val = multiplier * float(val)
+                if abs(final_val) > 1e-15:
+                    coo_rows.append(current_row_idx)
+                    coo_cols.append(col_idx)
+                    coo_vals.append(final_val)
 
-        G_rows.append(row_dense)
         h_vals.append(multiplier * float(rhs_val))
         con_labels.append(label)
         current_row_idx += 1
@@ -170,8 +181,16 @@ def build_canonical_kkt_system(
             if not np.isposinf(ub):
                 add_inequality_row({j: 1.0}, ub, f"bound_{vname}_upper", negate=False)
 
-    # Convert to standard NumPy arrays
-    G = np.array(G_rows, dtype=np.float64) if G_rows else np.zeros((0, n_vars), dtype=np.float64)
+    # Convert to standard NumPy or SciPy CSR arrays
+    if use_sparse:
+        import scipy.sparse as sp
+        G = sp.csr_matrix(
+            (coo_vals, (coo_rows, coo_cols)),
+            shape=(current_row_idx, n_vars),
+            dtype=np.float64
+        )
+    else:
+        G = np.array(G_rows, dtype=np.float64) if G_rows else np.zeros((0, n_vars), dtype=np.float64)
     h = np.array(h_vals, dtype=np.float64) if h_vals else np.zeros(0, dtype=np.float64)
 
     sparse_coo = (

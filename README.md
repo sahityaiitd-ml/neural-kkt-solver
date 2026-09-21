@@ -35,6 +35,10 @@ Instead of relying on slow, sequential iterative algorithms (like classical Simp
 ├── KKT_Solver_Iteration_1/        # Baseline ReLU Solver (5-term KKT loss)
 ├── KKT_Solver_Iteration_2/        # GELU + Softplus Dual Head Solver (4-term KKT loss)
 ├── KKT_Solver_Iteration_3/        # Fischer-Burmeister Complementarity Formulation
+├── KKT_Solver_Iteration_4/        # Decoupled Architecture & Linear Objective Pull
+├── KKT_Solver_Iteration_4_1/      # Cumulative Iteration 4: Decoupled + Adaptive Precond + Diameter Anneal + One-Sided Gap
+├── KKT_Solver_Iteration_5/        # Two-Stage Hybrid: Stage 1 Neural Scout (PHR ALM) -> Stage 2 Active-Set Linear Snap
+├── archive_legacy_iterations/     # Archived intermediate prototypes and exploratory diagnostics
 │
 ├── KKT_Benchmark/                 # Official Academic Benchmark Suite
 │   ├── problems/                  # 412 official Netlib & MIPLIB .mps.gz benchmark files

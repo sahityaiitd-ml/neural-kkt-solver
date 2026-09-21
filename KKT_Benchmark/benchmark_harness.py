@@ -148,10 +148,10 @@ def evaluate_solver_on_benchmark(
         z_hat = float(np.dot(c, x_hat))
         gap_percent = (abs(z_hat - z_true) / (abs(z_true) + 1e-9)) * 100.0
 
-        slack = np.dot(G, x_hat) - h
+        slack = G @ x_hat - h
         max_primal_violation = float(np.max(np.maximum(0.0, slack)))
         max_dual_violation = float(np.max(np.maximum(0.0, -lambda_hat)))
-        res_stationarity = float(np.linalg.norm(c + np.dot(G.T, lambda_hat)))
+        res_stationarity = float(np.linalg.norm(c + G.T @ lambda_hat))
         res_slackness = float(np.linalg.norm(lambda_hat * slack))
 
         scorecard.append({
