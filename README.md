@@ -7,14 +7,11 @@
 * **Students:** Sahitya Rankawat (2023ME21131), Manav Gupta (2023ME20733), Jeet Anand (2023ME20874)  
 * **Supervisor:** Prof. Kartikey Sharma  
 
----
 
 ## Overview
 This project develops an optimization solver to predict optimal primal and dual variables of any LP problem, based on solving the **Karush-Kuhn-Tucker (KKT) optimality conditions** using **Neural Networks (KINN)**. 
 
 Instead of relying on slow, sequential iterative algorithms (like classical Simplex or Interior-Point methods), this neural solver directly learns to satisfy the KKT optimality conditions in an unsupervised, physics-informed framework, outputting optimal primal variables ($\hat{x}$) and dual multipliers ($\hat{\lambda}$) simultaneously.
-
----
 
 ## Repository Structure
 
@@ -94,7 +91,7 @@ Execute stress tests on specific iterations or compare all archived JSON runs si
 
 ## Benchmarking & Evaluation Methodology
 
-1. **Strict Algorithmic Timing Protocol:** Timing starts strictly after the problem matrices are loaded into RAM and ends the instant solution vectors $(\hat{x}, \hat{\lambda})$ are returned. Zero disk I/O or parsing overhead is included in the timers.
+1. **Strict Compute Timing:** Timing starts strictly after the problem matrices are loaded into RAM and ends the instant solution vectors $(\hat{x}, \hat{\lambda})$ are returned. Zero disk I/O or parsing overhead is included in the timers.
 2. **True Optimality Metrics:** Because linear programs frequently have non-unique optimal solutions (entire optimal faces), measuring Euclidean distance $\|x - x^*\|$ to a single Simplex corner is mathematically flawed. Solvers are evaluated using:
 
    - **Relative Objective Gap:** $\frac{\|c^T \hat{x} - \hat{z}\|}{\max(1, \hat{z}\)}$
