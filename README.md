@@ -50,7 +50,6 @@ Instead of relying on slow, sequential iterative algorithms (like classical Simp
 └── .gitignore                    # Standard Python, environment, and cache ignore rules
 ```
 
----
 
 ## Quickstart
 
@@ -87,7 +86,6 @@ Execute stress tests on specific iterations or compare all archived JSON runs si
 ./stress_test.sh compare
 ```
 
----
 
 ## Benchmarking & Evaluation Methodology
 
