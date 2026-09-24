@@ -117,8 +117,7 @@ def solve_kkt_instance(
             w_stat=1.0,
             w_gap=1.0,
             w_fb=2.0,
-            w_alm=1.0,
-            w_x_pos=5.0
+            w_alm=1.0
         )
 
         total_loss.backward()

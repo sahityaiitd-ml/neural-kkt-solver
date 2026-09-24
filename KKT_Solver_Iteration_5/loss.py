@@ -56,7 +56,6 @@ def iteration_5_kkt_loss(
     w_gap: float = 1.0,
     w_fb: float = 2.0,
     w_alm: float = 1.0,
-    w_x_pos: float = 5.0,
     eps: float = 1e-6
 ) -> Tuple[torch.Tensor, Dict[str, float]]:
     """
@@ -92,17 +91,13 @@ def iteration_5_kkt_loss(
     v = torch.relu(lambda_hat + rho_per_row * g)
     loss_alm = torch.mean((1.0 / (2.0 * rho_per_row)) * (v ** 2 - lambda_hat ** 2))
 
-    # 7. Non-negativity
-    loss_x_pos = torch.mean(torch.relu(-x_hat) ** 2)
-
     # Total loss
     total_loss = (
         loss_obj_term +
         w_stat * loss_stat +
         w_gap * loss_gap +
         w_fb * loss_fb +
-        w_alm * loss_alm +
-        w_x_pos * loss_x_pos
+        w_alm * loss_alm
     )
 
     # Pure KKT Residual Metric for Checkpointing
@@ -111,8 +106,7 @@ def iteration_5_kkt_loss(
         w_stat * loss_stat +
         w_gap * loss_gap +
         w_fb * loss_fb +
-        10.0 * torch.mean(viol_raw ** 2) +
-        w_x_pos * loss_x_pos
+        10.0 * torch.mean(viol_raw ** 2)
     )
 
     max_primal_violation = float(torch.max(viol_raw).item())
@@ -125,7 +119,6 @@ def iteration_5_kkt_loss(
         "loss_gap": float(loss_gap.item()),
         "loss_fb": float(loss_fb.item()),
         "loss_alm": float(loss_alm.item()),
-        "loss_x_pos": float(loss_x_pos.item()),
         "duality_gap": float(duality_gap.item()),
         "max_primal_violation": max_primal_violation
     }

@@ -29,7 +29,6 @@ def solve_kkt_instance(
     w_stat: float = 1.0,
     w_fb: float = 5.0,
     w_prim: float = 1.0,
-    w_primal_pos: float = 5.0,
     eps: float = 1e-6,
     device: str = "cpu",
     verbose: bool = True
@@ -101,7 +100,6 @@ def solve_kkt_instance(
             w_stat=w_stat,
             w_fb=w_fb,
             w_prim=w_prim,
-            w_primal_pos=w_primal_pos,
             eps=eps
         )
 

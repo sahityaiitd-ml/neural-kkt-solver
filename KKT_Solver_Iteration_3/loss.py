@@ -50,7 +50,6 @@ def basic_kkt_loss(
     w_stat: float = 1.0,
     w_fb: float = 5.0,
     w_prim: float = 1.0,
-    w_primal_pos: float = 5.0,
     eps: float = 1e-6
 ) -> Tuple[torch.Tensor, Dict[str, float]]:
     """
@@ -74,8 +73,6 @@ def basic_kkt_loss(
         Weight for Fischer-Burmeister complementarity & feasibility condition.
     w_prim : float, default 1.0
         Direct quadratic penalty weight for boundary feasibility.
-    w_primal_pos : float, default 5.0
-        Weight for primal non-negativity (x >= 0).
     eps : float, default 1e-6
         Smoothing parameter for Fischer-Burmeister square root.
     """
@@ -99,15 +96,11 @@ def basic_kkt_loss(
     # 5. Traditional Complementary Slackness (for diagnostic logging)
     loss_slack = torch.mean((lambda_hat * slack) ** 2)
 
-    # 6. Primal Non-Negativity: x >= 0
-    loss_primal_pos = torch.mean(torch.relu(-x_hat) ** 2)
-
     # Total Weighted Loss
     total_loss = (
         w_stat * loss_stat +
         w_fb * loss_fb +
-        w_prim * loss_prim +
-        w_primal_pos * loss_primal_pos
+        w_prim * loss_prim
     )
 
     metrics = {
@@ -115,7 +108,6 @@ def basic_kkt_loss(
         "loss_fb": float(loss_fb.item()),
         "loss_prim": float(loss_prim.item()),
         "loss_slack": float(loss_slack.item()),
-        "loss_primal_pos": float(loss_primal_pos.item()),
         "max_primal_violation": max_primal_violation,
     }
 
@@ -131,7 +123,6 @@ class KKTLoss(nn.Module):
         w_stat: float = 1.0,
         w_fb: float = 5.0,
         w_prim: float = 1.0,
-        w_primal_pos: float = 5.0,
         eps: float = 1e-6
     ):
         super().__init__()
@@ -141,7 +132,6 @@ class KKTLoss(nn.Module):
         self.w_stat = w_stat
         self.w_fb = w_fb
         self.w_prim = w_prim
-        self.w_primal_pos = w_primal_pos
         self.eps = eps
 
     def forward(self, x_hat: torch.Tensor, lambda_hat: torch.Tensor) -> Tuple[torch.Tensor, Dict[str, float]]:
@@ -150,6 +140,5 @@ class KKTLoss(nn.Module):
             w_stat=self.w_stat,
             w_fb=self.w_fb,
             w_prim=self.w_prim,
-            w_primal_pos=self.w_primal_pos,
             eps=self.eps
         )

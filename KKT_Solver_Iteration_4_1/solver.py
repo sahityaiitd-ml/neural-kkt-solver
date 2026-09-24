@@ -36,7 +36,6 @@ def solve_kkt_instance(
     w_gap: float = 1.0,
     w_fb: float = 2.0,
     w_prim: float = 10.0,
-    w_x_pos: float = 5.0,
     eps: float = 1e-6,
     dual_bias_init: float = 1.0,
     device: str = "cpu",
@@ -132,7 +131,6 @@ def solve_kkt_instance(
             w_gap=w_gap,
             w_fb=w_fb,
             w_prim=w_prim,
-            w_x_pos=w_x_pos,
             eps=eps
         )
 

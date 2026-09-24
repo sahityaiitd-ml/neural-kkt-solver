@@ -46,7 +46,6 @@ def iteration_4_kkt_loss(
     w_gap: float = 1.0,
     w_fb: float = 2.0,
     w_prim: float = 15.0,
-    w_x_pos: float = 5.0,
     eps: float = 1e-6
 ) -> Tuple[torch.Tensor, Dict[str, float]]:
     """
@@ -76,17 +75,13 @@ def iteration_4_kkt_loss(
     loss_prim = torch.mean(primal_viol ** 2)
     max_primal_violation = float(torch.max(primal_viol).item())
 
-    # 7. Primal Variable Non-Negativity: x >= 0
-    loss_x_pos = torch.mean(torch.relu(-x_hat) ** 2)
-
     # Total Weighted Loss
     total_loss = (
         w_obj * loss_obj +
         w_stat * loss_stat +
         w_gap * loss_gap +
         w_fb * loss_fb +
-        w_prim * loss_prim +
-        w_x_pos * loss_x_pos
+        w_prim * loss_prim
     )
 
     metrics = {
@@ -96,7 +91,6 @@ def iteration_4_kkt_loss(
         "loss_gap": float(loss_gap.item()),
         "loss_fb": float(loss_fb.item()),
         "loss_prim": float(loss_prim.item()),
-        "loss_x_pos": float(loss_x_pos.item()),
         "duality_gap": float(duality_gap.item()),
         "max_primal_violation": max_primal_violation
     }
@@ -115,7 +109,6 @@ class KKTLoss(nn.Module):
         w_gap: float = 1.0,
         w_fb: float = 2.0,
         w_prim: float = 15.0,
-        w_x_pos: float = 5.0,
         eps: float = 1e-6
     ):
         super().__init__()
@@ -127,7 +120,6 @@ class KKTLoss(nn.Module):
         self.w_gap = w_gap
         self.w_fb = w_fb
         self.w_prim = w_prim
-        self.w_x_pos = w_x_pos
         self.eps = eps
 
     def forward(
@@ -143,7 +135,6 @@ class KKTLoss(nn.Module):
             w_gap=self.w_gap,
             w_fb=self.w_fb,
             w_prim=self.w_prim,
-            w_x_pos=self.w_x_pos,
             eps=self.eps
         )
 

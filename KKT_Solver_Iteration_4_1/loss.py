@@ -67,7 +67,6 @@ def iteration_4_1_kkt_loss(
     w_gap: float = 1.0,
     w_fb: float = 2.0,
     w_prim: float = 10.0,
-    w_x_pos: float = 5.0,
     eps: float = 1e-6
 ) -> Tuple[torch.Tensor, Dict[str, float]]:
     """
@@ -103,18 +102,13 @@ def iteration_4_1_kkt_loss(
     loss_prim = torch.mean(primal_viol ** 2)
     max_primal_violation = float(torch.max(primal_viol).item())
 
-    # 7. Primal Variable Non-Negativity: x >= 0
-    x_neg = torch.relu(-x_hat)
-    loss_x_pos = torch.mean(x_neg ** 2)
-
     # Total Optimization Loss
     total_loss = (
         current_w_obj * loss_obj +
         w_stat * loss_stat +
         w_gap * loss_gap +
         w_fb * loss_fb +
-        w_prim * loss_prim +
-        w_x_pos * loss_x_pos
+        w_prim * loss_prim
     )
 
     # Pure KKT Residual Metric (for model checkpointing)
@@ -122,8 +116,7 @@ def iteration_4_1_kkt_loss(
         w_stat * loss_stat +
         w_gap * loss_gap +
         w_fb * loss_fb +
-        w_prim * loss_prim +
-        w_x_pos * loss_x_pos
+        w_prim * loss_prim
     )
 
     metrics = {
@@ -135,7 +128,6 @@ def iteration_4_1_kkt_loss(
         "loss_gap": float(loss_gap.item()),
         "loss_fb": float(loss_fb.item()),
         "loss_prim": float(loss_prim.item()),
-        "loss_x_pos": float(loss_x_pos.item()),
         "duality_gap": float(duality_gap.item()),
         "max_primal_violation": max_primal_violation
     }

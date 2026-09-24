@@ -43,7 +43,6 @@ def run_dry_test():
         w_stat=1.0,
         w_fb=5.0,
         w_prim=1.0,
-        w_primal_pos=5.0,
         verbose=True
     )
 
